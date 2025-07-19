@@ -24,6 +24,52 @@ local LocalPlayer = Players.LocalPlayer
 
 local viewTab = window:AddTab("View Status")
 
+local playerDropdown, playerDropdownInstance = viewTab:AddDropdown("Select Player", function(name)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player.Name == name then
+			selectedPlayer = player
+			selectedPlayerLabel.Text = "Selected: " .. player.Name
+			updateStatus(selectedPlayer)
+			break
+		end
+	end
+end)
+
+local dropdownItems = {}
+
+local function refreshDropdown()
+	for _, item in pairs(dropdownItems) do
+		if item.Remove then
+			item:Remove()
+		elseif typeof(item) == "Instance" then
+			item:Destroy()
+		end
+	end
+	table.clear(dropdownItems)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			local btn, btnData = playerDropdown:Add(player.Name)
+			table.insert(dropdownItems, btnData)
+		end
+	end
+end
+
+viewTab:AddButton("Refresh Players", refreshDropdown)
+Players.PlayerAdded:Connect(refreshDropdown)
+Players.PlayerRemoving:Connect(refreshDropdown)
+
+refreshDropdown()
+
+task.spawn(function()
+	while true do
+		task.wait(2)
+		if selectedPlayer and selectedPlayer.Parent then
+			updateStatus(selectedPlayer)
+		end
+	end
+end)
+
 local labelMainStats = viewTab:AddLabel("Main Stats")
 local labelAdvancedStats = viewTab:AddLabel("Advanced Stats")
 labelAdvancedStats.TextColor3 = Color3.fromRGB(0, 255, 255)
@@ -120,49 +166,3 @@ local function updateStatus(player)
 		"- Hits to Kill: " .. tostring(hitsToKill) .. "\n" ..
 		"- Time to Kill: " .. tostring(timeToKill)
 end
-
-local playerDropdown, playerDropdownInstance = viewTab:AddDropdown("Select Player", function(name)
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player.Name == name then
-			selectedPlayer = player
-			selectedPlayerLabel.Text = "Selected: " .. player.Name
-			updateStatus(selectedPlayer)
-			break
-		end
-	end
-end)
-
-local dropdownItems = {}
-
-local function refreshDropdown()
-	for _, item in pairs(dropdownItems) do
-		if item.Remove then
-			item:Remove()
-		elseif typeof(item) == "Instance" then
-			item:Destroy()
-		end
-	end
-	table.clear(dropdownItems)
-
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer then
-			local btn, btnData = playerDropdown:Add(player.Name)
-			table.insert(dropdownItems, btnData)
-		end
-	end
-end
-
-viewTab:AddButton("Refresh Players", refreshDropdown)
-Players.PlayerAdded:Connect(refreshDropdown)
-Players.PlayerRemoving:Connect(refreshDropdown)
-
-refreshDropdown()
-
-task.spawn(function()
-	while true do
-		task.wait(2)
-		if selectedPlayer and selectedPlayer.Parent then
-			updateStatus(selectedPlayer)
-		end
-	end
-end)
