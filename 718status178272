@@ -21,13 +21,13 @@ end)
 
 local statsTab = window:AddTab("Stats")
 
-local timeLabel = statsTab:AddLabel("Time:\n0d 0h 0m 0s")
+local timeLabel = statsTab:AddLabel("⏰ Time:\n0d 0h 0m 0s")
 local rebirthPaceLabel = statsTab:AddLabel("Rebirth Pace: 0.00/Hour | 0.00/Day")
 local strengthPaceLabel = statsTab:AddLabel("Strength Pace: 0.00/Hour | 0.00/Day")
 local durabilityPaceLabel = statsTab:AddLabel("Durability Pace: 0.00/Hour | 0.00/Day")
 
 statsTab:AddLabel("")
-statsTab:AddLabel("Stats:")
+statsTab:AddLabel("📊 Stats:")
 local strengthLabel = statsTab:AddLabel("Strength: 0 | Gained: 0")
 local durabilityLabel = statsTab:AddLabel("Durability: 0 | Gained: 0")
 local rebirthLabel = statsTab:AddLabel("Rebirths: 0 | Gained: 0")
@@ -45,9 +45,9 @@ local function waitForChildRecursive(parent, name)
 end
 
 local leaderstats = waitForChildRecursive(player, "leaderstats")
-local strengthStat = waitForChildRecursive(leaderstats, "Strength")
-local durabilityStat = waitForChildRecursive(leaderstats, "Durability")
-local rebirthsStat = waitForChildRecursive(leaderstats, "Rebirths")
+local strengthStat = waitForChildRecursive(leaderstats, "strenght")
+local durabilityStat = waitForChildRecursive(leaderstats, "durability")
+local rebirthsStat = waitForChildRecursive(leaderstats, "rebirths")
 
 local startTime = tick()
 local startStrength = strengthStat.Value
@@ -97,7 +97,7 @@ task.spawn(function()
         local hoursElapsed = math.floor((elapsed / 3600) % 24)
         local daysElapsed = math.floor(elapsed / 86400)
 
-        timeLabel.Text = string.format("Time:\n%dd %dh %dm %ds", daysElapsed, hoursElapsed, minutes, seconds)
+        timeLabel.Text = string.format("⏰ Time:\n%dd %dh %dm %ds", daysElapsed, hoursElapsed, minutes, seconds)
         rebirthPaceLabel.Text = string.format("Rebirth Pace: %.2f/Hour | %.2f/Day", rebirthsPerHour, rebirthsPerDay)
         strengthPaceLabel.Text = string.format("Strength Pace: %.2f/Hour | %.2f/Day", strengthPerHour, strengthPerDay)
         durabilityPaceLabel.Text = string.format("Durability Pace: %.2f/Hour | %.2f/Day", durabilityPerHour, durabilityPerDay)
