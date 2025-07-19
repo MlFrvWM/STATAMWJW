@@ -28,7 +28,7 @@ local labelMainStats = viewTab:AddLabel("Main Stats") local labelAdvancedStats =
 for _, label in ipairs({labelMainStats, labelAdvancedStats, labelCombatStats, selectedPlayerLabel}) do
     label.TextWrapped = true
     label.TextScaled = false -- Ou true, se preferir redimensionar automaticamente
-    label.Size = UDim2.new(1, 0, 0, 100) -- Ajuste a altura conforme o conteúdo
+    label.Size = UDim2.new(1, 0, 0, 45) -- Ajuste a altura conforme o conteúdo
 end
 
 local selectedPlayer = nil
