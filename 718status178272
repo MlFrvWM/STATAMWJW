@@ -32,10 +32,27 @@ local strengthLabel = statsTab:AddLabel("Strength: 0 | Gained: 0")
 local durabilityLabel = statsTab:AddLabel("Durability: 0 | Gained: 0")
 local rebirthLabel = statsTab:AddLabel("Rebirths: 0 | Gained: 0")
 
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function waitForChildRecursive(parent, name)
+    local child = parent:FindFirstChild(name)
+    while not child do
+        parent.ChildAdded:Wait()
+        child = parent:FindFirstChild(name)
+    end
+    return child
+end
+
+local leaderstats = waitForChildRecursive(player, "leaderstats")
+local strengthStat = waitForChildRecursive(leaderstats, "Strength")
+local durabilityStat = waitForChildRecursive(leaderstats, "Durability")
+local rebirthsStat = waitForChildRecursive(leaderstats, "Rebirths")
+
 local startTime = tick()
-local startStrength = game.Players.LocalPlayer.leaderstats.Strength.Value
-local startDurability = game.Players.LocalPlayer.leaderstats.Durability.Value
-local startRebirths = game.Players.LocalPlayer.leaderstats.Rebirths.Value
+local startStrength = strengthStat.Value
+local startDurability = durabilityStat.Value
+local startRebirths = rebirthsStat.Value
 
 local function formatNumber(n)
     if n >= 1e9 then
@@ -54,43 +71,39 @@ task.spawn(function()
         task.wait(1)
 
         local elapsed = tick() - startTime
-        local player = game.Players.LocalPlayer
-        local stats = player:FindFirstChild("leaderstats")
 
-        if stats then
-            local strength = stats.Strength.Value
-            local durability = stats.Durability.Value
-            local rebirths = stats.Rebirths.Value
+        local strength = strengthStat.Value
+        local durability = durabilityStat.Value
+        local rebirths = rebirthsStat.Value
 
-            local gainedStrength = strength - startStrength
-            local gainedDurability = durability - startDurability
-            local gainedRebirths = rebirths - startRebirths
+        local gainedStrength = strength - startStrength
+        local gainedDurability = durability - startDurability
+        local gainedRebirths = rebirths - startRebirths
 
-            local hours = elapsed / 3600
-            local days = elapsed / 86400
+        local hours = elapsed / 3600
+        local days = elapsed / 86400
 
-            local strengthPerHour = gainedStrength / hours
-            local strengthPerDay = gainedStrength / days
+        local strengthPerHour = gainedStrength / hours
+        local strengthPerDay = gainedStrength / days
 
-            local durabilityPerHour = gainedDurability / hours
-            local durabilityPerDay = gainedDurability / days
+        local durabilityPerHour = gainedDurability / hours
+        local durabilityPerDay = gainedDurability / days
 
-            local rebirthsPerHour = gainedRebirths / hours
-            local rebirthsPerDay = gainedRebirths / days
+        local rebirthsPerHour = gainedRebirths / hours
+        local rebirthsPerDay = gainedRebirths / days
 
-            local seconds = math.floor(elapsed % 60)
-            local minutes = math.floor((elapsed / 60) % 60)
-            local hoursElapsed = math.floor((elapsed / 3600) % 24)
-            local daysElapsed = math.floor(elapsed / 86400)
+        local seconds = math.floor(elapsed % 60)
+        local minutes = math.floor((elapsed / 60) % 60)
+        local hoursElapsed = math.floor((elapsed / 3600) % 24)
+        local daysElapsed = math.floor(elapsed / 86400)
 
-            timeLabel.Text = string.format("⏰ Time:\n%dd %dh %dm %ds", daysElapsed, hoursElapsed, minutes, seconds)
-            rebirthPaceLabel.Text = string.format("Rebirth Pace: %.2f/Hour | %.2f/Day", rebirthsPerHour, rebirthsPerDay)
-            strengthPaceLabel.Text = string.format("Strength Pace: %.2f/Hour | %.2f/Day", strengthPerHour, strengthPerDay)
-            durabilityPaceLabel.Text = string.format("Durability Pace: %.2f/Hour | %.2f/Day", durabilityPerHour, durabilityPerDay)
+        timeLabel.Text = string.format("⏰ Time:\n%dd %dh %dm %ds", daysElapsed, hoursElapsed, minutes, seconds)
+        rebirthPaceLabel.Text = string.format("Rebirth Pace: %.2f/Hour | %.2f/Day", rebirthsPerHour, rebirthsPerDay)
+        strengthPaceLabel.Text = string.format("Strength Pace: %.2f/Hour | %.2f/Day", strengthPerHour, strengthPerDay)
+        durabilityPaceLabel.Text = string.format("Durability Pace: %.2f/Hour | %.2f/Day", durabilityPerHour, durabilityPerDay)
 
-            strengthLabel.Text = string.format("Strength: %s | Gained: %s", formatNumber(strength), formatNumber(gainedStrength))
-            durabilityLabel.Text = string.format("Durability: %s | Gained: %s", formatNumber(durability), formatNumber(gainedDurability))
-            rebirthLabel.Text = string.format("Rebirths: %s | Gained: %s", formatNumber(rebirths), formatNumber(gainedRebirths))
-        end
+        strengthLabel.Text = string.format("Strength: %s | Gained: %s", formatNumber(strength), formatNumber(gainedStrength))
+        durabilityLabel.Text = string.format("Durability: %s | Gained: %s", formatNumber(durability), formatNumber(gainedDurability))
+        rebirthLabel.Text = string.format("Rebirths: %s | Gained: %s", formatNumber(rebirths), formatNumber(gainedRebirths))
     end
 end)
