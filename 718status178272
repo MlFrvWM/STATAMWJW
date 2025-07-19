@@ -121,7 +121,7 @@ local function updateStatus(player)
 		"- Time to Kill: " .. tostring(timeToKill)
 end
 
-local playerDropdown = viewTab:AddDropdown("Select Player", {}, function(name)
+local playerDropdown, playerDropdownInstance = viewTab:AddDropdown("Select Player", function(name)
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player.Name == name then
 			selectedPlayer = player
@@ -136,24 +136,25 @@ local dropdownItems = {}
 
 local function refreshDropdown()
 	for _, item in pairs(dropdownItems) do
-		item:Remove()
+		if item.Remove then
+			item:Remove()
+		elseif typeof(item) == "Instance" then
+			item:Destroy()
+		end
 	end
 	table.clear(dropdownItems)
 
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player ~= LocalPlayer then
-			local _, item = playerDropdown:Add(player.Name)
-			table.insert(dropdownItems, item)
+			local btn, btnData = playerDropdown:Add(player.Name)
+			table.insert(dropdownItems, btnData)
 		end
 	end
 end
 
+viewTab:AddButton("Refresh Players", refreshDropdown)
 Players.PlayerAdded:Connect(refreshDropdown)
 Players.PlayerRemoving:Connect(refreshDropdown)
-
-viewTab:AddButton("Refresh Players", function()
-	refreshDropdown()
-end)
 
 refreshDropdown()
 
