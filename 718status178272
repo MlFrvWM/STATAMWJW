@@ -107,12 +107,12 @@ local function updateStatus(player)
     )
 end
 
-playerDropdown = viewTab:CreateDropdown("Select Player", function(selected)
+playerDropdown = viewTab:AddDropdown("Select Player", function(selected)
     local target = Players:FindFirstChild(selected)
     updateStatus(target)
 end)
 
-statusLabel = viewTab:CreateLabel("Select a player to view status")
+statusLabel = viewTab:AddLabel("Select a player to view status")
 
 for _, plr in pairs(Players:GetPlayers()) do
     playerDropdown:Add(plr.Name)
