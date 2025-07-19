@@ -33,44 +33,19 @@ local selectedPlayerLabel = viewTab:AddLabel("Selected: None")
 
 local selectedPlayer = nil
 
-local playerDropdown = viewTab:AddDropdown("Select Player", {}, function(name)
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player.Name == name then
-			selectedPlayer = player
-			selectedPlayerLabel.Text = "Selected: " .. player.Name
-			updateStatus(selectedPlayer)
-			break
-		end
+local function abbreviateNumber(n)
+	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"}
+	local i = 1
+	while n >= 1000 and i < #suffixes do
+		n = n / 1000
+		i = i + 1
 	end
-end)
-
-local function refreshDropdown()
-	local names = {}
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer then
-			table.insert(names, player.Name)
-		end
-	end
-	playerDropdown:SetOptions(names)
+	return string.format("%.1f%s", n, suffixes[i])
 end
 
-Players.PlayerAdded:Connect(refreshDropdown)
-Players.PlayerRemoving:Connect(refreshDropdown)
-
-viewTab:AddButton("Refresh Players", function()
-	refreshDropdown()
-end)
-
-refreshDropdown()
-
-task.spawn(function()
-	while true do
-		task.wait(2)
-		if selectedPlayer and selectedPlayer.Parent then
-			updateStatus(selectedPlayer)
-		end
-	end
-end)
+local function formatStat(name, value)
+	return name .. ": " .. abbreviateNumber(value)
+end
 
 local function updateStatus(player)
 	if not player then return end
@@ -123,9 +98,6 @@ local function updateStatus(player)
 	local timeToKill = myDamage > 0 and string.format("%.2fs", hitsToKill * 0.15) or "N/A"
 	local totalDurability = stats.BaseDurability
 
-	labelAdvancedStats.TextColor3 = Color3.fromRGB(0, 255, 255)
-	labelAdvancedStats.TextSize = 17
-
 	labelMainStats.Text =
 		"[Main Stats]\n" ..
 		"- " .. formatStat("Strength", stats.Strength) .. "\n" ..
@@ -148,3 +120,42 @@ local function updateStatus(player)
 		"- Hits to Kill: " .. tostring(hitsToKill) .. "\n" ..
 		"- Time to Kill: " .. tostring(timeToKill)
 end
+
+local playerDropdown = viewTab:AddDropdown("Select Player", {}, function(name)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player.Name == name then
+			selectedPlayer = player
+			selectedPlayerLabel.Text = "Selected: " .. player.Name
+			updateStatus(selectedPlayer)
+			break
+		end
+	end
+end)
+
+local function refreshDropdown()
+	local names = {}
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			table.insert(names, player.Name)
+		end
+	end
+	playerDropdown:SetOptions(names)
+end
+
+Players.PlayerAdded:Connect(refreshDropdown)
+Players.PlayerRemoving:Connect(refreshDropdown)
+
+viewTab:AddButton("Refresh Players", function()
+	refreshDropdown()
+end)
+
+refreshDropdown()
+
+task.spawn(function()
+	while true do
+		task.wait(2)
+		if selectedPlayer and selectedPlayer.Parent then
+			updateStatus(selectedPlayer)
+		end
+	end
+end)
