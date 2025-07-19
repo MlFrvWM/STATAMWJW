@@ -32,7 +32,7 @@ local function abbreviateNumber(n)
     return string.format("%.2f%s", n, suffixes[i])
 end
 
-local viewTab = Window:AddTab("View Status")
+local viewTab = window:AddTab("View Status")
 
 local statusLabel = viewTab:AddLabel("Select a player to view status")
 local selectedPlayer = nil
