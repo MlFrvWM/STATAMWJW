@@ -32,12 +32,18 @@ local function abbreviateNumber(n)
     return string.format("%.2f%s", n, suffixes[i])
 end
 
-local viewTab = window:AddTab("View Status")
+local viewTab = Window:AddTab("View Status")
 
 local statusLabel = viewTab:AddLabel("Select a player to view status")
+local selectedPlayer = nil
+
 local playerDropdown = viewTab:AddDropdown("Select Player", {}, function(selected)
     local player = Players:FindFirstChild(selected)
-    if player then updateStatus(player) end
+    if player then
+        selectedPlayer = player
+    else
+        selectedPlayer = nil
+    end
 end)
 
 local function formatStat(label, value)
@@ -76,7 +82,6 @@ function updateStatus(player)
         stats.PetDamage = advStats:FindFirstChild("PetDamage") and advStats.PetDamage.Value or 0
     end
 
-    -- Calcular dano do seu player
     local myStats = {
         BaseDamage = 0,
         PetDamage = 0
@@ -91,28 +96,36 @@ function updateStatus(player)
     local myDamage = math.max(myStats.BaseDamage, myStats.PetDamage)
     local enemyHP = stats.BaseDurability
     local hitsToKill = myDamage > 0 and math.ceil(enemyHP / myDamage) or "N/A"
-    local timeToKill = myDamage > 0 and string.format("%.2fs", hitsToKill * 0.15) or "N/A" -- 0.15s por golpe rápido
+    local timeToKill = myDamage > 0 and string.format("%.2fs", hitsToKill * 0.15) or "N/A"
 
     local totalDurability = stats.BaseDurability
     local totalDamage = math.max(stats.BaseDamage, stats.PetDamage)
 
-    statusLabel:Set(
+    if statusLabel then
+        pcall(function()
+            statusLabel:Remove()
+        end)
+    end
+
+    statusLabel = viewTab:AddLabel(
         "<font size='20' color='rgb(0,255,255)'><b>View Status</b></font>\n\n" ..
+        "<font size='20' color='rgb(0,255,255)'>" ..
         formatStat("Strength", stats.Strength) ..
         "\n" .. formatStat("Durability", stats.Durability) ..
         "\n" .. formatStat("Agility", stats.Agility) ..
         "\nRebirths: " .. stats.Rebirths ..
         "\nKills: " .. stats.Kills ..
         "\n\n--------------------------" ..
-        "\n<font size='20' color='rgb(0,255,255)'>Advanced Stats</font>" ..
+        "\nAdvanced Stats" ..
         "\n" .. formatStat("Base Durability", stats.BaseDurability) ..
-        "\nUltimate Boost: " .. stats.UltimateBoost .. " (+" .. stats.UltimateBoost .. "%)" ..
-        "\nPet Boost: " .. stats.PetBoost .. " (+" .. stats.PetBoost .. "%)" ..
+        "\nUltimate Boost: +" .. stats.UltimateBoost .. "%" ..
+        "\nPet Boost: +" .. stats.PetBoost .. "%" ..
         "\n" .. formatStat("TOTAL DURABILITY", totalDurability) ..
-        "\n" .. formatStat("Your Base Damage", stats.BaseDamage) ..
-        "\n" .. formatStat("With Your Pets", stats.PetDamage) ..
+        "\nYour Base Damage: " .. tostring(stats.BaseDamage) ..
+        "\nWith Your Pets: " .. tostring(stats.PetDamage) ..
         "\nHits to Kill: " .. hitsToKill ..
-        "\nTime to Kill: " .. timeToKill
+        "\nTime to Kill: " .. timeToKill ..
+        "</font>"
     )
 end
 
@@ -126,4 +139,13 @@ end)
 
 Players.PlayerRemoving:Connect(function(plr)
     playerDropdown:Remove(plr.Name)
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if selectedPlayer then
+            updateStatus(selectedPlayer)
+        end
+    end
 end)
