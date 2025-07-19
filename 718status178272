@@ -19,37 +19,13 @@ spawn(function()
     setFontRecursive(window.gui, Enum.Font.SourceSansBold)
 end)
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local function abbreviateNumber(n)
-	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"}
-	local i = 1
-	while n >= 1000 and i < #suffixes do
-		n = n / 1000
-		i = i + 1
-	end
-	return string.format("%.2f%s", n, suffixes[i])
-end
-
 local viewTab = window:AddTab("View Status")
 
-local selectedPlayer = nil
-local playerDropdown = viewTab:AddDropdown("Select Player", function(selected)
-	local player = Players:FindFirstChild(selected)
-	selectedPlayer = player or nil
-end)
-
--- Labels separadas
 local labelMainStats = viewTab:AddLabel("Main Stats")
 local labelAdvancedStats = viewTab:AddLabel("Advanced Stats")
 labelAdvancedStats.TextColor3 = Color3.fromRGB(0, 255, 255)
-labelAdvancedStats.TextSize = 20
+labelAdvancedStats.TextSize = 17
 local labelCombatStats = viewTab:AddLabel("Combat Stats")
-
-local function formatStat(label, value)
-	return label .. ": " .. tostring(value) .. " (" .. abbreviateNumber(value) .. ")"
-end
 
 local function updateStatus(player)
 	if not player then return end
@@ -102,48 +78,30 @@ local function updateStatus(player)
 	local timeToKill = myDamage > 0 and string.format("%.2fs", hitsToKill * 0.15) or "N/A"
 	local totalDurability = stats.BaseDurability
 
+	-- Ajustar apenas o AdvancedStats visual
+	labelAdvancedStats.TextColor3 = Color3.fromRGB(0, 255, 255)
+	labelAdvancedStats.TextSize = 17
+
+	-- Atualizar os textos
 	labelMainStats.Text =
-		"[View Status]\n\n" ..
-		formatStat("Strength", stats.Strength) .. "\n" ..
-		formatStat("Durability", stats.Durability) .. "\n" ..
-		formatStat("Agility", stats.Agility) .. "\n" ..
-		"Rebirths: " .. stats.Rebirths .. "\n" ..
-		"Kills: " .. stats.Kills
+		"[Main Stats]\n" ..
+		"- " .. formatStat("Strength", stats.Strength) .. "\n" ..
+		"- " .. formatStat("Durability", stats.Durability) .. "\n" ..
+		"- " .. formatStat("Agility", stats.Agility) .. "\n" ..
+		"- Rebirths: " .. stats.Rebirths .. "\n" ..
+		"- Kills: " .. stats.Kills
 
 	labelAdvancedStats.Text =
-		"--- Advanced Stats ---\n" ..
-		formatStat("Base Durability", stats.BaseDurability) .. "\n" ..
-		"Ultimate Boost: +" .. stats.UltimateBoost .. "%\n" ..
-		"Pet Boost: +" .. stats.PetBoost .. "%\n" ..
-		formatStat("TOTAL DURABILITY", totalDurability)
+		"[Advanced Stats]\n" ..
+		"- " .. formatStat("Base Durability", stats.BaseDurability) .. "\n" ..
+		"- Ultimate Boost: +" .. stats.UltimateBoost .. "%\n" ..
+		"- Pet Boost: +" .. stats.PetBoost .. "%\n" ..
+		"- TOTAL DURABILITY: " .. abbreviateNumber(totalDurability)
 
 	labelCombatStats.Text =
-		"Enemy Base Damage: " .. tostring(stats.BaseDamage) .. "\n" ..
-		"Enemy Pet Damage: " .. tostring(stats.PetDamage) .. "\n" ..
-		"Hits to Kill: " .. hitsToKill .. "\n" ..
-		"Time to Kill: " .. timeToKill
+		"[Combat Stats]\n" ..
+		"- Enemy Base Damage: " .. abbreviateNumber(stats.BaseDamage) .. "\n" ..
+		"- Enemy Pet Damage: " .. abbreviateNumber(stats.PetDamage) .. "\n" ..
+		"- Hits to Kill: " .. tostring(hitsToKill) .. "\n" ..
+		"- Time to Kill: " .. tostring(timeToKill)
 end
-
--- Preencher lista inicial
-for _, plr in ipairs(Players:GetPlayers()) do
-	playerDropdown:Add(plr.Name)
-end
-
--- Atualizar lista
-Players.PlayerAdded:Connect(function(plr)
-	playerDropdown:Add(plr.Name)
-end)
-
-Players.PlayerRemoving:Connect(function(plr)
-	playerDropdown:Remove(plr.Name)
-end)
-
--- Atualização contínua
-task.spawn(function()
-	while true do
-		task.wait(1)
-		if selectedPlayer then
-			updateStatus(selectedPlayer)
-		end
-	end
-end)
