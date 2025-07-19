@@ -45,7 +45,7 @@ local function waitForChildRecursive(parent, name)
 end
 
 local leaderstats = waitForChildRecursive(player, "leaderstats")
-local strengthStat = waitForChildRecursive(leaderstats, "strenght")
+local strengthStat = waitForChildRecursive(leaderstats, "strength")
 local durabilityStat = waitForChildRecursive(leaderstats, "durability")
 local rebirthsStat = waitForChildRecursive(leaderstats, "rebirths")
 
