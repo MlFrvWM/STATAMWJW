@@ -132,14 +132,20 @@ local playerDropdown = viewTab:AddDropdown("Select Player", {}, function(name)
 	end
 end)
 
+local dropdownItems = {}
+
 local function refreshDropdown()
-	local names = {}
+	for _, item in pairs(dropdownItems) do
+		item:Remove()
+	end
+	table.clear(dropdownItems)
+
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player ~= LocalPlayer then
-			table.insert(names, player.Name)
+			local _, item = playerDropdown:Add(player.Name)
+			table.insert(dropdownItems, item)
 		end
 	end
-	playerDropdown:SetOptions(names)
 end
 
 Players.PlayerAdded:Connect(refreshDropdown)
