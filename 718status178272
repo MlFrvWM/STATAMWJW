@@ -22,8 +22,6 @@ end)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local viewTab = window:AddTab("View Status")
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -37,7 +35,7 @@ local function abbreviateNumber(n)
     return string.format("%.2f%s", n, suffixes[i])
 end
 
-local viewTab = Window:CreateTab("View Status", 4483362458)
+local viewTab = window:AddTab("View Status", 4483362458)
 
 local playerDropdown
 local statusLabel
