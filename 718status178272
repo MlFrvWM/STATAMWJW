@@ -19,6 +19,9 @@ spawn(function()
     setFontRecursive(window.gui, Enum.Font.SourceSansBold)
 end)
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 local viewTab = window:AddTab("View Status")
 
 local labelMainStats = viewTab:AddLabel("Main Stats")
@@ -26,6 +29,48 @@ local labelAdvancedStats = viewTab:AddLabel("Advanced Stats")
 labelAdvancedStats.TextColor3 = Color3.fromRGB(0, 255, 255)
 labelAdvancedStats.TextSize = 17
 local labelCombatStats = viewTab:AddLabel("Combat Stats")
+local selectedPlayerLabel = viewTab:AddLabel("Selected: None")
+
+local selectedPlayer = nil
+
+local playerDropdown = viewTab:AddDropdown("Select Player", {}, function(name)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player.Name == name then
+			selectedPlayer = player
+			selectedPlayerLabel.Text = "Selected: " .. player.Name
+			updateStatus(selectedPlayer)
+			break
+		end
+	end
+end)
+
+local function refreshDropdown()
+	local names = {}
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			table.insert(names, player.Name)
+		end
+	end
+	playerDropdown:SetOptions(names)
+end
+
+Players.PlayerAdded:Connect(refreshDropdown)
+Players.PlayerRemoving:Connect(refreshDropdown)
+
+viewTab:AddButton("Refresh Players", function()
+	refreshDropdown()
+end)
+
+refreshDropdown()
+
+task.spawn(function()
+	while true do
+		task.wait(2)
+		if selectedPlayer and selectedPlayer.Parent then
+			updateStatus(selectedPlayer)
+		end
+	end
+end)
 
 local function updateStatus(player)
 	if not player then return end
@@ -78,11 +123,9 @@ local function updateStatus(player)
 	local timeToKill = myDamage > 0 and string.format("%.2fs", hitsToKill * 0.15) or "N/A"
 	local totalDurability = stats.BaseDurability
 
-	-- Ajustar apenas o AdvancedStats visual
 	labelAdvancedStats.TextColor3 = Color3.fromRGB(0, 255, 255)
 	labelAdvancedStats.TextSize = 17
 
-	-- Atualizar os textos
 	labelMainStats.Text =
 		"[Main Stats]\n" ..
 		"- " .. formatStat("Strength", stats.Strength) .. "\n" ..
