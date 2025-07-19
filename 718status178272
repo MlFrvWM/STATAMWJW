@@ -23,85 +23,107 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local viewTab = window:AddTab("View Status")
-local statusLabels = {}
 
-local function addStatusLabel(tab, labelName)
-    local label = tab:AddLabel(labelName .. ": carregando...")
-    statusLabels[labelName] = label
-end
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-local dropdownData, dropdown = viewTab:AddDropdown("Select Player", function(selectedPlayerName)
-    local selectedPlayer = Players:FindFirstChild(selectedPlayerName)
-    if selectedPlayer and selectedPlayer:FindFirstChild("leaderstats") then
-        local stats = selectedPlayer.leaderstats
-        local function getStat(name)
-            local stat = stats:FindFirstChild(name)
-            return stat and stat.Value or 0
-        end
-
-        local function getPetBoost()
-            return 0
-        end
-
-        local function getTotalDurability()
-            return getStat("Durability") + getStat("Ultimate Boost") + getPetBoost()
-        end
-
-        statusLabels["Displayname"].Text = "Displayname: " .. selectedPlayer.DisplayName
-        statusLabels["Username"].Text = "Username: " .. selectedPlayer.Name
-        statusLabels["Strength"].Text = "Strength: " .. getStat("Strength")
-        statusLabels["Durability"].Text = "Durability: " .. getStat("Durability")
-        statusLabels["Agility"].Text = "Agility: " .. getStat("Agility")
-        statusLabels["Rebirths"].Text = "Rebirths: " .. getStat("Rebirths")
-        statusLabels["Kills"].Text = "Kills: " .. getStat("Kills")
-        statusLabels["Base Durability"].Text = "Base Durability: " .. getStat("Durability")
-        statusLabels["Ultimate Boost"].Text = "Ultimate Boost: " .. getStat("Ultimate Boost") .. " (+0%)"
-        statusLabels["Pet Boost"].Text = "Pet Boost: " .. getPetBoost() .. " (+0%)"
-        statusLabels["TOTAL DURABILITY"].Text = "TOTAL DURABILITY: " .. getTotalDurability()
-        statusLabels["Your Base Damage"].Text = "Your Base Damage: " .. math.floor(getStat("Strength") * 0.25)
-        statusLabels["With Your Pets"].Text = "With Your Pets (0): " .. math.floor(getStat("Strength") * 0.25)
-        statusLabels["Hits to Kill"].Text = "Hits to Kill: N/A"
-        statusLabels["Time to Kill"].Text = "Time to Kill: N/A"
+local function abbreviateNumber(n)
+    local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"}
+    local i = 1
+    while n >= 1000 and i < #suffixes do
+        n = n / 1000
+        i = i + 1
     end
-end)
-
-for _, player in ipairs(Players:GetPlayers()) do
-    dropdownData:Add(player.Name)
+    return string.format("%.2f%s", n, suffixes[i])
 end
 
-Players.PlayerAdded:Connect(function(player)
-    dropdownData:Add(player.Name)
+local viewTab = Window:CreateTab("View Status", 4483362458)
+
+local playerDropdown
+local statusLabel
+
+local function getPlayerStats(player)
+    local stats = {
+        DisplayName = player.DisplayName,
+        Username = player.Name,
+        Strength = 0,
+        Durability = 0,
+        Agility = 0,
+        Rebirths = 0,
+        Kills = 0,
+        BaseDurability = 0,
+        UltimateBoost = 0,
+        PetBoost = 0,
+        BaseDamage = 0,
+        PetDamage = 0,
+    }
+
+    local statsFolder = player:FindFirstChild("leaderstats")
+    if statsFolder then
+        stats.Strength = statsFolder:FindFirstChild("Strength") and statsFolder.Strength.Value or 0
+        stats.Durability = statsFolder:FindFirstChild("Durability") and statsFolder.Durability.Value or 0
+        stats.Agility = statsFolder:FindFirstChild("Agility") and statsFolder.Agility.Value or 0
+        stats.Rebirths = statsFolder:FindFirstChild("Rebirths") and statsFolder.Rebirths.Value or 0
+        stats.Kills = statsFolder:FindFirstChild("Kills") and statsFolder.Kills.Value or 0
+    end
+
+    local advanced = player:FindFirstChild("AdvancedStats") or player
+    stats.BaseDurability = advanced:FindFirstChild("BaseDurability") and advanced.BaseDurability.Value or 0
+    stats.UltimateBoost = advanced:FindFirstChild("UltimateBoost") and advanced.UltimateBoost.Value or 0
+    stats.PetBoost = advanced:FindFirstChild("PetBoost") and advanced.PetBoost.Value or 0
+    stats.BaseDamage = advanced:FindFirstChild("BaseDamage") and advanced.BaseDamage.Value or 0
+    stats.PetDamage = advanced:FindFirstChild("PetDamage") and advanced.PetDamage.Value or 0
+
+    return stats
+end
+
+local function formatStat(label, value)
+    return label .. ": " .. tostring(value) .. " (" .. abbreviateNumber(value) .. ")"
+end
+
+local function updateStatus(player)
+    if not player then return end
+    local s = getPlayerStats(player)
+
+    local totalDurability = s.BaseDurability
+    local totalDamage = s.PetDamage > s.BaseDamage and s.PetDamage or s.BaseDamage
+
+    statusLabel:Set(
+        "Displayname: " .. s.DisplayName ..
+        "\nUsername: " .. s.Username ..
+        "\n" .. formatStat("Strength", s.Strength) ..
+        "\n" .. formatStat("Durability", s.Durability) ..
+        "\n" .. formatStat("Agility", s.Agility) ..
+        "\nRebirths: " .. s.Rebirths ..
+        "\nKills: " .. s.Kills ..
+        "\n\n------------------------" ..
+        "\n<font size='20' color='rgb(0,255,255)'>Advanced Stats</font>" ..
+        "\n" .. formatStat("Base Durability", s.BaseDurability) ..
+        "\nUltimate Boost: " .. s.UltimateBoost .. " (+" .. s.UltimateBoost .. "%)" ..
+        "\nPet Boost: " .. s.PetBoost .. " (+" .. s.PetBoost .. "%)" ..
+        "\n" .. formatStat("TOTAL DURABILITY", totalDurability) ..
+        "\n" .. formatStat("Your Base Damage", s.BaseDamage) ..
+        "\n" .. formatStat("With Your Pets", s.PetDamage) ..
+        "\nHits to Kill: N/A" ..
+        "\nTime to Kill: N/A"
+    )
+end
+
+playerDropdown = viewTab:CreateDropdown("Select Player", function(selected)
+    local target = Players:FindFirstChild(selected)
+    updateStatus(target)
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-    dropdownData:Add(player.Name)
+statusLabel = viewTab:CreateLabel("Select a player to view status")
+
+for _, plr in pairs(Players:GetPlayers()) do
+    playerDropdown:Add(plr.Name)
+end
+
+Players.PlayerAdded:Connect(function(plr)
+    playerDropdown:Add(plr.Name)
 end)
 
-addStatusLabel(viewTab, "Displayname")
-addStatusLabel(viewTab, "Username")
-addStatusLabel(viewTab, "Strength")
-addStatusLabel(viewTab, "Durability")
-addStatusLabel(viewTab, "Agility")
-addStatusLabel(viewTab, "Rebirths")
-addStatusLabel(viewTab, "Kills")
-
-viewTab:AddLabel("-------------------------")
-viewTab:AddLabel("Advanced Stats")
-
-addStatusLabel(viewTab, "Base Durability")
-addStatusLabel(viewTab, "Ultimate Boost")
-addStatusLabel(viewTab, "Pet Boost")
-addStatusLabel(viewTab, "TOTAL DURABILITY")
-addStatusLabel(viewTab, "Your Base Damage")
-addStatusLabel(viewTab, "With Your Pets")
-addStatusLabel(viewTab, "Hits to Kill")
-addStatusLabel(viewTab, "Time to Kill")
-
-viewTab:AddButton("Print Own Stats", function()
-    print("DisplayName:", LocalPlayer.DisplayName)
-    print("Username:", LocalPlayer.Name)
-end)
-
-viewTab:AddSwitch("Spectate", function(value)
-    print("Spectate toggled:", value)
+Players.PlayerRemoving:Connect(function(plr)
+    playerDropdown:Remove(plr.Name)
 end)
