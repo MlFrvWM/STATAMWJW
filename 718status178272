@@ -25,6 +25,12 @@ local viewTab = window:AddTab("View Status")
 
 local labelMainStats = viewTab:AddLabel("Main Stats") local labelAdvancedStats = viewTab:AddLabel("Advanced Stats") labelAdvancedStats.TextColor3 = Color3.fromRGB(0, 255, 255) labelAdvancedStats.TextSize = 17 local labelCombatStats = viewTab:AddLabel("Combat Stats") local selectedPlayerLabel = viewTab:AddLabel("Selected: None")
 
+for _, label in ipairs({labelMainStats, labelAdvancedStats, labelCombatStats, selectedPlayerLabel}) do
+    label.TextWrapped = true
+    label.TextScaled = false -- Ou true, se preferir redimensionar automaticamente
+    label.Size = UDim2.new(1, 0, 0, 100) -- Ajuste a altura conforme o conteúdo
+end
+
 local selectedPlayer = nil
 
 local function abbreviateNumber(n) local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"} local i = 1 while n >= 1000 and i < #suffixes do n = n / 1000 i = i + 1 end return string.format("%.1f%s", n, suffixes[i]) end
