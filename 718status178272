@@ -32,9 +32,6 @@ local strengthLabel = statsTab:AddLabel("Strength: 0 | Gained: 0")
 local durabilityLabel = statsTab:AddLabel("Durability: 0 | Gained: 0")
 local rebirthLabel = statsTab:AddLabel("Rebirths: 0 | Gained: 0")
 
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
 local function waitForChildRecursive(parent, name)
     local child = parent:FindFirstChild(name)
     while not child do
@@ -44,10 +41,15 @@ local function waitForChildRecursive(parent, name)
     return child
 end
 
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
 local leaderstats = waitForChildRecursive(player, "leaderstats")
 local strengthStat = waitForChildRecursive(leaderstats, "strength")
 local durabilityStat = waitForChildRecursive(leaderstats, "durability")
 local rebirthsStat = waitForChildRecursive(leaderstats, "rebirths")
+
+repeat task.wait() until strengthStat.Value > 0 or durabilityStat.Value > 0 or rebirthsStat.Value > 0
 
 local startTime = tick()
 local startStrength = strengthStat.Value
@@ -71,6 +73,7 @@ task.spawn(function()
         task.wait(1)
 
         local elapsed = tick() - startTime
+        if elapsed < 1 then continue end
 
         local strength = strengthStat.Value
         local durability = durabilityStat.Value
@@ -83,14 +86,16 @@ task.spawn(function()
         local hours = elapsed / 3600
         local days = elapsed / 86400
 
-        local strengthPerHour = gainedStrength / hours
-        local strengthPerDay = gainedStrength / days
+        local function safeDiv(a, b) return b > 0 and (a / b) or 0 end
 
-        local durabilityPerHour = gainedDurability / hours
-        local durabilityPerDay = gainedDurability / days
+        local strengthPerHour = safeDiv(gainedStrength, hours)
+        local strengthPerDay = safeDiv(gainedStrength, days)
 
-        local rebirthsPerHour = gainedRebirths / hours
-        local rebirthsPerDay = gainedRebirths / days
+        local durabilityPerHour = safeDiv(gainedDurability, hours)
+        local durabilityPerDay = safeDiv(gainedDurability, days)
+
+        local rebirthsPerHour = safeDiv(gainedRebirths, hours)
+        local rebirthsPerDay = safeDiv(gainedRebirths, days)
 
         local seconds = math.floor(elapsed % 60)
         local minutes = math.floor((elapsed / 60) % 60)
